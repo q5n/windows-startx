@@ -1,0 +1,12 @@
+# Rust
+/target/
+
+# IDE
+.vscode/
+.idea/
+
+# Windows
+*.exe
+*.dll
+
+
