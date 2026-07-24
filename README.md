@@ -20,9 +20,8 @@ Supported options:
 | -w | -Wait |
 | -d | -WorkingDirectory |
 | -s | -WindowStyle |
-| -a | (check admin rights) |
-| -V | (show version) |
-| -h | (show help) |
+
+Extra options (no Start-Process equivalent): `-a` (check admin rights), `-V` (show version), `-h` (show help).
 
 ## Usage
 
