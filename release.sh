@@ -45,6 +45,32 @@ sed -Ei 's/^(version\s*=\s*[^0-9]+)[0-9]+\.[0-9]+.[0-9]+([^0-9]+)$/\1'${nextVer}
 git add -A
 git commit -m "release $nextVerTag"
 
+# 保留最新20个版本tag，删除旧tag（本地+远程）
+clean_old_tags(){
+    local keep=5
+    echo "clean old tags, keep latest $keep tags..."
+    tags=( $(git tag -l --sort=-v:refname | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+$") )
+
+    if [ ${#tags[@]} -le $keep ]; then
+        echo "tag count ${#tags[@]}, no cleanup needed"
+        return
+    fi
+
+    old_tags=( "${tags[@]:$keep}" )
+
+    for tag in "${old_tags[@]}"; do
+        echo "delete tag: $tag"
+        # 删除本地tag
+        git tag -d "$tag"
+        # 删除GitHub远程tag
+        git push origin --delete tag "$tag"
+    done
+}
+clean_old_tags
+
 git push
 git tag $nextVerTag
 git push origin $nextVerTag
+
+
+
