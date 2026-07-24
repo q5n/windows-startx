@@ -45,9 +45,9 @@ sed -Ei 's/^(version\s*=\s*[^0-9]+)[0-9]+\.[0-9]+.[0-9]+([^0-9]+)$/\1'${nextVer}
 git add -A
 git commit -m "release $nextVerTag"
 
-# 保留最新20个版本tag，删除旧tag（本地+远程）
+# 保留20个版本tag，删除旧tag（本地+远程）
 clean_old_tags(){
-    local keep=5
+    local keep=20
     echo "clean old tags, keep latest $keep tags..."
     tags=( $(git tag -l --sort=-v:refname | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+$") )
 
