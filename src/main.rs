@@ -193,35 +193,34 @@ struct Config {
 
 
 fn usage(){
-println!(
-    "startx {}",
-    env!("CARGO_PKG_VERSION")
-);
-println!(r#"
-Usage:
- startx.exe [-v Verb] [-w] [-d Directory] [-s WindowStyle] <Program> [Arguments...]
+
+println!(r#"Usage:
+ {0} [-v Verb] [-w] [-d Directory] [-s WindowStyle] <Program> [Arguments...]
 
 Options:
  -v <Verb>          Shell Verb example: open/runas/edit/print/...
  -w                 Wait for process exit
  -d <Directory>     Working directory
- -s <Style>         Normal/Hidden/Minimized/Maximized
+ -s <WindowStyle>   Normal/Hidden/Minimized/Maximized
  -a                 Check admin rights (exit 0=admin, 1=not admin)
- -V                 Show version
+ -V                 Show version (current: v{1})
  -h                 Show help and version
 
 Examples:
-  startx.exe notepad.exe
-  startx.exe notepad.exe "C:\Documents\hello world.txt"
-  startx.exe -w notepad.exe "C:\Documents\test.txt"
-  startx.exe -v runas cmd.exe /k whoami
-  startx.exe -v runas -w cmd.exe /c "whoami && pause"
-  startx.exe -d "C:\Work" app.exe --config "dev config.json"
-  startx.exe -s Minimized app.exe
-  startx.exe -s Hidden cmd.exe /c "echo hello > C:\Temp\result.txt"
-  startx.exe -- "-special-name.exe" -v child-argument
-  startx.exe -a && echo running as admin
-"#);
+  {0} notepad.exe
+  {0} notepad.exe "C:\Documents\hello world.txt"
+  {0} -w notepad.exe "C:\Documents\test.txt"
+  {0} -v runas cmd.exe /k whoami
+  {0} -v runas -w cmd.exe /c "whoami && pause"
+  {0} -d "C:\Work" app.exe --config "dev config.json"
+  {0} -s Minimized app.exe
+  {0} -s Hidden cmd.exe /c "echo hello > C:\Temp\result.txt"
+  {0} -- "-special-name.exe" -v child-argument
+  {0} -a && echo running as admin
+"#,
+    env!("CARGO_PKG_NAME"),
+    env!("CARGO_PKG_VERSION")
+);
 }
 
 
@@ -545,7 +544,8 @@ fn main(){
 
             if cfg.show_version{
                 println!(
-                    "startx {}",
+                    "{} {}",
+                    env!("CARGO_PKG_NAME"),
                     env!("CARGO_PKG_VERSION")
                 );
                 std::process::exit(0);
@@ -571,7 +571,8 @@ fn main(){
 
             if let Err(e)=execute(cfg){
                 eprintln!(
-                    "startx: {}",
+                    "{}: {}",
+                    env!("CARGO_PKG_NAME"),
                     e
                 );
                 std::process::exit(1);
@@ -580,7 +581,8 @@ fn main(){
 
         Err(e)=>{
             eprintln!(
-                "startx: {}\n",
+                "{}: {}\n",
+                env!("CARGO_PKG_NAME"),
                 e
             );
             usage();

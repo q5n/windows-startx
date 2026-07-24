@@ -28,28 +28,28 @@ Supported options:
 
 ```cmd
 Usage:
- startx.exe [-v Verb] [-w] [-d Directory] [-s WindowStyle] <Program> [Arguments...]
+ startx [-v Verb] [-w] [-d Directory] [-s WindowStyle] <Program> [Arguments...]
 
 Options:
  -v <Verb>          Shell Verb example: open/runas/edit/print/...
  -w                 Wait for process exit
  -d <Directory>     Working directory
- -s <Style>         Normal/Hidden/Minimized/Maximized
+ -s <WindowStyle>   Normal/Hidden/Minimized/Maximized
  -a                 Check admin rights (exit 0=admin, 1=not admin)
- -V                 Show version
+ -V                 Show version (current: v0.2.4)
  -h                 Show help and version
 
 Examples:
-  startx.exe notepad.exe
-  startx.exe notepad.exe "C:\Documents\hello world.txt"
-  startx.exe -w notepad.exe "C:\Documents\test.txt"
-  startx.exe -v runas cmd.exe /k whoami
-  startx.exe -v runas -w cmd.exe /c "whoami && pause"
-  startx.exe -d "C:\Work" app.exe --config "dev config.json"
-  startx.exe -s Minimized app.exe
-  startx.exe -s Hidden cmd.exe /c "echo hello > C:\Temp\result.txt"
-  startx.exe -- "-special-name.exe" -v child-argument
-  startx.exe -a && echo running as admin
+  startx notepad.exe
+  startx notepad.exe "C:\Documents\hello world.txt"
+  startx -w notepad.exe "C:\Documents\test.txt"
+  startx -v runas cmd.exe /k whoami
+  startx -v runas -w cmd.exe /c "whoami && pause"
+  startx -d "C:\Work" app.exe --config "dev config.json"
+  startx -s Minimized app.exe
+  startx -s Hidden cmd.exe /c "echo hello > C:\Temp\result.txt"
+  startx -- "-special-name.exe" -v child-argument
+  startx -a && echo running as admin
 ```
 
 
