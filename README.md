@@ -20,6 +20,7 @@ Supported options:
 | -w | -Wait |
 | -d | -WorkingDirectory |
 | -s | -WindowStyle |
+| -a | (check admin rights) |
 
 ## Usage
 
@@ -32,6 +33,7 @@ Options:
  -w                 Wait for process exit
  -d <Directory>     Working directory
  -s <Style>         Normal/Hidden/Minimized/Maximized
+ -a                 Check admin rights (exit 0=admin, 1=not admin)
 
 Examples:
   startx.exe notepad.exe
@@ -43,6 +45,7 @@ Examples:
   startx.exe -s Minimized app.exe
   startx.exe -s Hidden cmd.exe /c "echo hello > C:\Temp\result.txt"
   startx.exe -- "-special-name.exe" -v child-argument
+  startx.exe -a && echo running as admin
 ```
 
 

@@ -16,6 +16,7 @@ case "$1" in
     ;;
   *)
     echo "arg format error! only support +001/+010/+100 "
+    exit 1
     ;;
 esac
 

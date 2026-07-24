@@ -27,6 +27,9 @@ const SW_MAXIMIZE: i32 = 3;
 
 const INFINITE: u32 = 0xffffffff;
 
+const TOKEN_QUERY: u32 = 0x0008;
+const TOKEN_ELEVATION: u32 = 20;
+
 // =========================
 // SHELLEXECUTEINFO
 // =========================
@@ -78,6 +81,25 @@ unsafe extern "system" {
     fn CloseHandle(
         hObject: HANDLE
     ) -> i32;
+
+    fn GetCurrentProcess() -> HANDLE;
+}
+
+#[link(name="advapi32")]
+unsafe extern "system" {
+    fn OpenProcessToken(
+        ProcessHandle: HANDLE,
+        DesiredAccess: u32,
+        TokenHandle: *mut HANDLE
+    ) -> i32;
+
+    fn GetTokenInformation(
+        TokenHandle: HANDLE,
+        TokenInformationClass: u32,
+        TokenInformation: *mut c_void,
+        TokenInformationLength: u32,
+        ReturnLength: *mut u32
+    ) -> i32;
 }
 
 // =========================
@@ -123,6 +145,37 @@ fn build_parameters(args:&[String])->Option<String>{
     )
 }
 
+fn is_elevated()->bool{
+    unsafe{
+        let mut token:HANDLE =
+            std::ptr::null_mut();
+
+        if OpenProcessToken(
+            GetCurrentProcess(),
+            TOKEN_QUERY,
+            &mut token
+        )==0 {
+            return false;
+        }
+
+        let mut elevated:u32=0;
+        let mut ret_len:u32=0;
+
+        let ok =
+            GetTokenInformation(
+                token,
+                TOKEN_ELEVATION,
+                &mut elevated as *mut u32 as *mut c_void,
+                4,
+                &mut ret_len
+            );
+
+        CloseHandle(token);
+
+        ok!=0 && elevated!=0
+    }
+}
+
 // =========================
 // Config
 // =========================
@@ -131,6 +184,7 @@ struct Config {
     wait:bool,
     directory:Option<String>,
     show:i32,
+    admin_check:bool,
     file:String,
     args:Vec<String>,
 }
@@ -146,6 +200,7 @@ Options:
  -w                 Wait for process exit
  -d <Directory>     Working directory
  -s <Style>         Normal/Hidden/Minimized/Maximized
+ -a                 Check admin rights (exit 0=admin, 1=not admin)
 
 Examples:
   startx.exe notepad.exe
@@ -157,6 +212,7 @@ Examples:
   startx.exe -s Minimized app.exe
   startx.exe -s Hidden cmd.exe /c "echo hello > C:\Temp\result.txt"
   startx.exe -- "-special-name.exe" -v child-argument
+  startx.exe -a && echo running as admin
 "#);
 }
 
@@ -206,6 +262,7 @@ fn parse_args()->Result<Config,String>{
     let mut wait=false;
     let mut directory=None;
     let mut show=SW_NORMAL;
+    let mut admin_check=false;
 
     while index < args.len(){
 
@@ -227,6 +284,10 @@ fn parse_args()->Result<Config,String>{
 
             "-w" => {
                 wait=true;
+            }
+
+            "-a" => {
+                admin_check=true;
             }
 
             "-d" => {
@@ -280,6 +341,19 @@ fn parse_args()->Result<Config,String>{
     }
 
     if index>=args.len(){
+        if admin_check{
+            return Ok(Config{
+                verb,
+                wait,
+                directory,
+                show,
+                admin_check,
+                file:
+                    String::new(),
+                args:
+                    Vec::new(),
+            });
+        }
         return Err(
             "missing program"
             .into()
@@ -291,6 +365,7 @@ fn parse_args()->Result<Config,String>{
         wait,
         directory,
         show,
+        admin_check,
         file:
             args[index].clone(),
         args:
@@ -438,6 +513,24 @@ fn main(){
     match parse_args(){
 
         Ok(cfg)=>{
+            if cfg.admin_check{
+                let admin=is_elevated();
+
+                println!(
+                    "{}",
+                    if admin{
+                        "elevated"
+                    }
+                    else{
+                        "not elevated"
+                    }
+                );
+
+                std::process::exit(
+                    if admin{0}else{1}
+                );
+            }
+
             if let Err(e)=execute(cfg){
                 eprintln!(
                     "startx: {}",
