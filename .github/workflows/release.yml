@@ -10,15 +10,39 @@ permissions:
 
 
 jobs:
-  release:
+  build:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+        - target: x86_64-pc-windows-msvc
+          arch: x64
+        - target: aarch64-pc-windows-msvc
+          arch: arm64
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
-    - run: cargo build --release
+      with:
+        targets: ${{ matrix.target }}
+    - run: cargo build --release --target ${{ matrix.target }}
+    - name: Zip artifact
+      run: |
+        Compress-Archive -Path "target/${{ matrix.target }}/release/startx.exe" -DestinationPath "startx-${{ env:GITHUB_REF_NAME }}-${{ matrix.arch }}.zip"
+    - uses: actions/upload-artifact@v4
+      with:
+        name: startx-${{ matrix.arch }}
+        path: startx-${{ github.ref_name }}-${{ matrix.arch }}.zip
+
+  release:
+    needs: build
+    runs-on: windows-latest
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        pattern: startx-*
+        merge-multiple: true
     - name: Create Release
       run: |
-        gh release create $env:GITHUB_REF_NAME target/release/startx.exe --title $env:GITHUB_REF_NAME --generate-notes
+        gh release create $env:GITHUB_REF_NAME *.zip --title $env:GITHUB_REF_NAME --generate-notes
       env:
         GH_TOKEN: ${{ github.token }}
-

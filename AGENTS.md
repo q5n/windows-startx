@@ -19,5 +19,5 @@ Single-crate Rust CLI: `startx.exe`, a Windows-native `Start-Process` alternativ
 ## Releasing
 
 - Use `release.sh +001|+010|+100` (bash; patch/minor/major). It bumps `Cargo.toml` version, commits `release vX.Y.Z`, tags, pushes, and prunes old tags (keeps 20, deletes from remote too).
-- GitHub Release is automatic: `.github/workflows/release.yml` fires on `v*` tags and attaches `target/release/startx.exe`. Never hand-edit the version in `Cargo.toml` for a release — let the script do it.
+- GitHub Release is automatic: `.github/workflows/release.yml` fires on `v*` tags, builds x64 + arm64 (matrix) and attaches `startx-vX.Y.Z-x64.zip` / `startx-vX.Y.Z-arm64.zip`. Never hand-edit the version in `Cargo.toml` for a release — let the script do it.
 - `release.sh` has a bug: unknown args print an error but do NOT exit, so it proceeds with the last tag's version. Be careful to pass exactly `+001`/`+010`/`+100`.
