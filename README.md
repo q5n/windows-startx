@@ -21,6 +21,8 @@ Supported options:
 | -d | -WorkingDirectory |
 | -s | -WindowStyle |
 | -a | (check admin rights) |
+| -V | (show version) |
+| -h | (show help) |
 
 ## Usage
 
@@ -34,6 +36,8 @@ Options:
  -d <Directory>     Working directory
  -s <Style>         Normal/Hidden/Minimized/Maximized
  -a                 Check admin rights (exit 0=admin, 1=not admin)
+ -V                 Show version
+ -h                 Show help and version
 
 Examples:
   startx.exe notepad.exe

@@ -185,12 +185,18 @@ struct Config {
     directory:Option<String>,
     show:i32,
     admin_check:bool,
+    show_version:bool,
+    help:bool,
     file:String,
     args:Vec<String>,
 }
 
 
 fn usage(){
+println!(
+    "startx {}",
+    env!("CARGO_PKG_VERSION")
+);
 println!(r#"
 Usage:
  startx.exe [-v Verb] [-w] [-d Directory] [-s WindowStyle] <Program> [Arguments...]
@@ -201,6 +207,8 @@ Options:
  -d <Directory>     Working directory
  -s <Style>         Normal/Hidden/Minimized/Maximized
  -a                 Check admin rights (exit 0=admin, 1=not admin)
+ -V                 Show version
+ -h                 Show help and version
 
 Examples:
   startx.exe notepad.exe
@@ -263,6 +271,8 @@ fn parse_args()->Result<Config,String>{
     let mut directory=None;
     let mut show=SW_NORMAL;
     let mut admin_check=false;
+    let mut show_version=false;
+    let mut help=false;
 
     while index < args.len(){
 
@@ -288,6 +298,14 @@ fn parse_args()->Result<Config,String>{
 
             "-a" => {
                 admin_check=true;
+            }
+
+            "-V" => {
+                show_version=true;
+            }
+
+            "-h" => {
+                help=true;
             }
 
             "-d" => {
@@ -341,13 +359,18 @@ fn parse_args()->Result<Config,String>{
     }
 
     if index>=args.len(){
-        if admin_check{
+        if admin_check
+            || show_version
+            || help
+        {
             return Ok(Config{
                 verb,
                 wait,
                 directory,
                 show,
                 admin_check,
+                show_version,
+                help,
                 file:
                     String::new(),
                 args:
@@ -366,6 +389,8 @@ fn parse_args()->Result<Config,String>{
         directory,
         show,
         admin_check,
+        show_version,
+        help,
         file:
             args[index].clone(),
         args:
@@ -513,6 +538,19 @@ fn main(){
     match parse_args(){
 
         Ok(cfg)=>{
+            if cfg.help{
+                usage();
+                std::process::exit(0);
+            }
+
+            if cfg.show_version{
+                println!(
+                    "startx {}",
+                    env!("CARGO_PKG_VERSION")
+                );
+                std::process::exit(0);
+            }
+
             if cfg.admin_check{
                 let admin=is_elevated();
 
