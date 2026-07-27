@@ -36,7 +36,11 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
     - name: Download wingetcreate
-      run: Invoke-WebRequest -Uri "https://aka.ms/wingetcreate" -OutFile "wingetcreate.exe"
+      run: |
+        winget install --id Microsoft.WingetCreate -s winget --accept-source-agreements --accept-package-agreements
+        echo "---------------------------wingetcreate info START"
+        wingetcreate info
+        echo "---------------------------wingetcreate info END"
     - if: steps.rel.outputs.version == env.FIRST_SUBMIT_VERSION
       name: First-time submit
       run: |
@@ -46,8 +50,8 @@ jobs:
         $harm = (Get-FileHash "arm64.zip" -Algorithm SHA256).Hash
         $f = "winget/${{ env.IDENTIFIER }}.installer.yaml"
         (Get-Content $f -Raw) -replace "PLACEHOLDER_X64_SHA256", $h64 -replace "PLACEHOLDER_ARM64_SHA256", $harm | Set-Content $f
-        .\wingetcreate.exe submit winget --token "${{ secrets.WINGET_TOKEN }}"
+        wingetcreate.exe submit .\winget --token "${{ secrets.WINGET_TOKEN }}"
     - if: steps.rel.outputs.version != env.FIRST_SUBMIT_VERSION
       name: Update existing package
       run: |
-        .\wingetcreate.exe update ${{ env.IDENTIFIER }} --version ${{ steps.rel.outputs.version }} --urls "${{ steps.rel.outputs.x64 }}" "${{ steps.rel.outputs.arm64 }}" --submit --token "${{ secrets.WINGET_TOKEN }}"
+        wingetcreate.exe update ${{ env.IDENTIFIER }} --version ${{ steps.rel.outputs.version }} --urls "${{ steps.rel.outputs.x64 }}" "${{ steps.rel.outputs.arm64 }}" --submit --token "${{ secrets.WINGET_TOKEN }}"
