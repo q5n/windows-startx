@@ -11,5 +11,4 @@ jobs:
       - name: Check winget
         shell: pwsh
         run: |
-          winget --version
-          winget list
+          winget search --id Microsoft.WingetCreate -s winget
