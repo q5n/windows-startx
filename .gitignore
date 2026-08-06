@@ -9,4 +9,6 @@
 *.exe
 *.dll
 
-
+debug.log
+test/startx.toml
+test/startx.toml
