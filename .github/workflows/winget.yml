@@ -31,8 +31,7 @@ jobs:
         "tag=$tag" >> $env:GITHUB_OUTPUT
         "version=$($tag.TrimStart('v'))" >> $env:GITHUB_OUTPUT
         $base = "https://github.com/${{ github.repository }}/releases/download/$tag"
-        "x64=$base/startx-$tag-x64.zip" >> $env:GITHUB_OUTPUT
-        "arm64=$base/startx-$tag-arm64.zip" >> $env:GITHUB_OUTPUT
+        "x86=$base/startx-$tag-x86.zip" >> $env:GITHUB_OUTPUT
       env:
         GH_TOKEN: ${{ github.token }}
     - name: Download wingetcreate
@@ -44,14 +43,12 @@ jobs:
     - if: steps.rel.outputs.version == env.FIRST_SUBMIT_VERSION
       name: First-time submit
       run: |
-        Invoke-WebRequest "${{ steps.rel.outputs.x64 }}" -OutFile "x64.zip"
-        Invoke-WebRequest "${{ steps.rel.outputs.arm64 }}" -OutFile "arm64.zip"
-        $h64 = (Get-FileHash "x64.zip" -Algorithm SHA256).Hash
-        $harm = (Get-FileHash "arm64.zip" -Algorithm SHA256).Hash
+        Invoke-WebRequest "${{ steps.rel.outputs.x86 }}" -OutFile "x86.zip"
+        $h86 = (Get-FileHash "x86.zip" -Algorithm SHA256).Hash
         $f = "winget/${{ env.IDENTIFIER }}.installer.yaml"
-        (Get-Content $f -Raw) -replace "PLACEHOLDER_X64_SHA256", $h64 -replace "PLACEHOLDER_ARM64_SHA256", $harm | Set-Content $f
+        (Get-Content $f -Raw) -replace "PLACEHOLDER_X86_SHA256", $h86 | Set-Content $f
         wingetcreate.exe submit .\winget --token "${{ secrets.WINGET_TOKEN }}"
     - if: steps.rel.outputs.version != env.FIRST_SUBMIT_VERSION
       name: Update existing package
       run: |
-        wingetcreate.exe update ${{ env.IDENTIFIER }} --version ${{ steps.rel.outputs.version }} --urls "${{ steps.rel.outputs.x64 }}" "${{ steps.rel.outputs.arm64 }}" --submit --token "${{ secrets.WINGET_TOKEN }}"
+        wingetcreate.exe update ${{ env.IDENTIFIER }} --version ${{ steps.rel.outputs.version }} --urls "${{ steps.rel.outputs.x86 }}" --submit --token "${{ secrets.WINGET_TOKEN }}"

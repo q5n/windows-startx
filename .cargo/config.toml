@@ -11,3 +11,10 @@ rustflags = [
     "-C",
     "target-feature=+crt-static"
 ]
+
+[target.i686-pc-windows-msvc]
+
+rustflags = [
+    "-C",
+    "target-feature=+crt-static"
+]

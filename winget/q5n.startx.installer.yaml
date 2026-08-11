@@ -8,11 +8,8 @@ NestedInstallerFiles:
 - RelativeFilePath: startx.exe
   PortableCommandAlias: startx
 Installers:
-- Architecture: x64
-  InstallerUrl: https://github.com/q5n/windows-startx/releases/download/v0.2.5/startx-v0.2.5-x64.zip
-  InstallerSha256: PLACEHOLDER_X64_SHA256
-- Architecture: arm64
-  InstallerUrl: https://github.com/q5n/windows-startx/releases/download/v0.2.5/startx-v0.2.5-arm64.zip
-  InstallerSha256: PLACEHOLDER_ARM64_SHA256
+- Architecture: x86
+  InstallerUrl: https://github.com/q5n/windows-startx/releases/download/v0.2.5/startx-v0.2.5-x86.zip
+  InstallerSha256: PLACEHOLDER_X86_SHA256
 ManifestType: installer
 ManifestVersion: 1.12.0

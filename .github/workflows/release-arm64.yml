@@ -1,0 +1,45 @@
+name: Release arm64
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to upload to (empty = latest release)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@1.77.2
+      with:
+        targets: aarch64-pc-windows-msvc
+    - name: Resolve tag
+      id: rel
+      run: |
+        $tag = "${{ inputs.tag }}"
+        if (-not $tag) {
+          $tag = (gh release view --repo "${{ github.repository }}" --json tagName | ConvertFrom-Json).tagName
+        }
+        "tag=$tag" >> $env:GITHUB_OUTPUT
+      env:
+        GH_TOKEN: ${{ github.token }}
+    - run: cargo build --release --target aarch64-pc-windows-msvc
+    - name: Zip artifact
+      run: |
+        Compress-Archive -Path "target/aarch64-pc-windows-msvc/release/startx.exe" -DestinationPath "startx-${{ steps.rel.outputs.tag }}-arm64.zip"
+    - uses: actions/upload-artifact@v4
+      with:
+        name: startx-arm64
+        path: startx-${{ steps.rel.outputs.tag }}-arm64.zip
+    - name: Upload to release
+      run: |
+        gh release upload ${{ steps.rel.outputs.tag }} startx-${{ steps.rel.outputs.tag }}-arm64.zip --clobber
+      env:
+        GH_TOKEN: ${{ github.token }}
