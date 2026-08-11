@@ -1,4 +1,5 @@
 #![windows_subsystem = "console"]
+#![allow(clippy::upper_case_acronyms)]
 use std::{
     env,
     ffi::{c_void, OsStr},
@@ -65,14 +66,14 @@ struct SHELLEXECUTEINFOW {
 // Win32 API
 // =========================
 #[link(name="shell32")]
-unsafe extern "system" {
+extern "system" {
     fn ShellExecuteExW(
         pExecInfo: *mut SHELLEXECUTEINFOW
     ) -> i32;
 }
 
 #[link(name="kernel32")]
-unsafe extern "system" {
+extern "system" {
     fn WaitForSingleObject(
         hHandle: HANDLE,
         dwMilliseconds: u32
@@ -86,7 +87,7 @@ unsafe extern "system" {
 }
 
 #[link(name="advapi32")]
-unsafe extern "system" {
+extern "system" {
     fn OpenProcessToken(
         ProcessHandle: HANDLE,
         DesiredAccess: u32,
