@@ -1,9 +1,12 @@
-name: Release
+name: Release x86
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to upload to (empty = latest release)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -12,36 +15,31 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        include:
-        - target: i686-pc-windows-msvc
-          arch: x86
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@1.77.2
       with:
-        targets: ${{ matrix.target }}
-    - run: cargo build --release --target ${{ matrix.target }}
+        targets: i686-pc-windows-msvc
+    - name: Resolve tag
+      id: rel
+      run: |
+        $tag = "${{ inputs.tag }}"
+        if (-not $tag) {
+          $tag = (gh release view --repo "${{ github.repository }}" --json tagName | ConvertFrom-Json).tagName
+        }
+        "tag=$tag" >> $env:GITHUB_OUTPUT
+      env:
+        GH_TOKEN: ${{ github.token }}
+    - run: cargo build --release --target i686-pc-windows-msvc
     - name: Zip artifact
       run: |
-        Compress-Archive -Path "target/${{ matrix.target }}/release/startx.exe" -DestinationPath "startx-${{ github.ref_name }}-${{ matrix.arch }}.zip"
+        Compress-Archive -Path "target/i686-pc-windows-msvc/release/startx.exe" -DestinationPath "startx-${{ steps.rel.outputs.tag }}-x86.zip"
     - uses: actions/upload-artifact@v4
       with:
-        name: startx-${{ matrix.arch }}
-        path: startx-${{ github.ref_name }}-${{ matrix.arch }}.zip
-
-  release:
-    needs: build
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/download-artifact@v4
-      with:
-        pattern: startx-*
-        merge-multiple: true
-    - name: Create Release
+        name: startx-x86
+        path: startx-${{ steps.rel.outputs.tag }}-x86.zip
+    - name: Upload to release
       run: |
-        gh release create $env:GITHUB_REF_NAME *.zip --title $env:GITHUB_REF_NAME --generate-notes
+        gh release upload ${{ steps.rel.outputs.tag }} startx-${{ steps.rel.outputs.tag }}-x86.zip --clobber
       env:
         GH_TOKEN: ${{ github.token }}

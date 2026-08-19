@@ -1,12 +1,9 @@
 name: Release x64
 
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Release tag to upload to (empty = latest release)'
-        required: false
-        default: ''
+  push:
+    tags:
+      - "v*"
 
 permissions:
   contents: write
@@ -20,26 +17,26 @@ jobs:
     - uses: dtolnay/rust-toolchain@1.77.2
       with:
         targets: x86_64-pc-windows-msvc
-    - name: Resolve tag
-      id: rel
-      run: |
-        $tag = "${{ inputs.tag }}"
-        if (-not $tag) {
-          $tag = (gh release view --repo "${{ github.repository }}" --json tagName | ConvertFrom-Json).tagName
-        }
-        "tag=$tag" >> $env:GITHUB_OUTPUT
-      env:
-        GH_TOKEN: ${{ github.token }}
     - run: cargo build --release --target x86_64-pc-windows-msvc
     - name: Zip artifact
       run: |
-        Compress-Archive -Path "target/x86_64-pc-windows-msvc/release/startx.exe" -DestinationPath "startx-${{ steps.rel.outputs.tag }}-x64.zip"
+        Compress-Archive -Path "target/x86_64-pc-windows-msvc/release/startx.exe" -DestinationPath "startx-${{ github.ref_name }}-x64.zip"
     - uses: actions/upload-artifact@v4
       with:
         name: startx-x64
-        path: startx-${{ steps.rel.outputs.tag }}-x64.zip
-    - name: Upload to release
+        path: startx-${{ github.ref_name }}-x64.zip
+
+  release:
+    needs: build
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/download-artifact@v4
+      with:
+        pattern: startx-*
+        merge-multiple: true
+    - name: Create Release
       run: |
-        gh release upload ${{ steps.rel.outputs.tag }} startx-${{ steps.rel.outputs.tag }}-x64.zip --clobber
+        gh release create $env:GITHUB_REF_NAME *.zip --title $env:GITHUB_REF_NAME --generate-notes
       env:
         GH_TOKEN: ${{ github.token }}
