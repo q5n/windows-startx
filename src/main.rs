@@ -185,7 +185,7 @@ struct Config {
     wait:bool,
     directory:Option<String>,
     show:i32,
-    admin_check:bool,
+    elevate:bool,
     show_version:bool,
     help:bool,
     file:String,
@@ -203,7 +203,7 @@ Options:
  -w                 Wait for process exit
  -d <Directory>     Working directory
  -s <WindowStyle>   Normal/Hidden/Minimized/Maximized
- -a                 Check admin rights (exit 0=admin, 1=not admin)
+ -e                 Elevate and run as admin (runas); exit 1 if already elevated
  -V                 Show version (current: v{1})
  -h                 Show help and version
 
@@ -217,7 +217,7 @@ Examples:
   {0} -s Minimized app.exe
   {0} -s Hidden cmd.exe /c "echo hello > C:\Temp\result.txt"
   {0} -- "-special-name.exe" -v child-argument
-  {0} -a && echo running as admin
+  {0} -e cmd.exe /k whoami
 "#,
     env!("CARGO_PKG_NAME"),
     env!("CARGO_PKG_VERSION")
@@ -270,7 +270,7 @@ fn parse_args()->Result<Config,String>{
     let mut wait=false;
     let mut directory=None;
     let mut show=SW_NORMAL;
-    let mut admin_check=false;
+    let mut elevate=false;
     let mut show_version=false;
     let mut help=false;
 
@@ -296,8 +296,8 @@ fn parse_args()->Result<Config,String>{
                 wait=true;
             }
 
-            "-a" => {
-                admin_check=true;
+            "-e" => {
+                elevate=true;
             }
 
             "-V" => {
@@ -359,7 +359,7 @@ fn parse_args()->Result<Config,String>{
     }
 
     if index>=args.len(){
-        if admin_check
+        if elevate
             || show_version
             || help
         {
@@ -368,7 +368,7 @@ fn parse_args()->Result<Config,String>{
                 wait,
                 directory,
                 show,
-                admin_check,
+                elevate,
                 show_version,
                 help,
                 file:
@@ -388,7 +388,7 @@ fn parse_args()->Result<Config,String>{
         wait,
         directory,
         show,
-        admin_check,
+        elevate,
         show_version,
         help,
         file:
@@ -537,7 +537,7 @@ fn main(){
 
     match parse_args(){
 
-        Ok(cfg)=>{
+        Ok(mut cfg)=>{
             if cfg.help{
                 usage();
                 std::process::exit(0);
@@ -552,22 +552,22 @@ fn main(){
                 std::process::exit(0);
             }
 
-            if cfg.admin_check{
-                let admin=is_elevated();
-
-                println!(
-                    "{}",
-                    if admin{
-                        "elevated"
-                    }
-                    else{
-                        "not elevated"
-                    }
-                );
-
-                std::process::exit(
-                    if admin{0}else{1}
-                );
+            if cfg.elevate{
+                if is_elevated(){
+                    std::process::exit(1);
+                }
+                if cfg.file.is_empty(){
+                    eprintln!(
+                        "{}: missing program for elevation\n",
+                        env!("CARGO_PKG_NAME")
+                    );
+                    usage();
+                    std::process::exit(2);
+                }
+                cfg.verb=
+                    Some(
+                        "runas".to_string()
+                    );
             }
 
             if let Err(e)=execute(cfg){

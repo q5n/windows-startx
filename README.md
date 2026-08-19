@@ -21,7 +21,7 @@ Supported options:
 | -d | -WorkingDirectory |
 | -s | -WindowStyle |
 
-Extra options (no Start-Process equivalent): `-a` (check admin rights), `-V` (show version), `-h` (show help).
+Extra options (no Start-Process equivalent): `-e` (elevate and run as admin; exit 1 if already elevated), `-V` (show version), `-h` (show help).
 
 ## Usage
 
@@ -34,7 +34,7 @@ Options:
  -w                 Wait for process exit
  -d <Directory>     Working directory
  -s <WindowStyle>   Normal/Hidden/Minimized/Maximized
- -a                 Check admin rights (exit 0=admin, 1=not admin)
+ -e                 Elevate and run as admin (runas); exit 1 if already elevated
  -V                 Show version (current: v0.2.4)
  -h                 Show help and version
 
@@ -48,7 +48,7 @@ Examples:
   startx -s Minimized app.exe
   startx -s Hidden cmd.exe /c "echo hello > C:\Temp\result.txt"
   startx -- "-special-name.exe" -v child-argument
-  startx -a && echo running as admin
+  startx -e cmd.exe /k whoami
 ```
 
 
